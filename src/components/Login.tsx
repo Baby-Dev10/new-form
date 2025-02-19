@@ -17,7 +17,7 @@ function Login({ setIsCustomerLoggedIn }: LoginProps) {
   const navigate = useNavigate();
 
   const googleLogin = useGoogleLogin({
-    onSuccess: async (response) => {
+    onSuccess: async () => {
       try {
         setIsLoading(true);
         // In a real app, you would:
