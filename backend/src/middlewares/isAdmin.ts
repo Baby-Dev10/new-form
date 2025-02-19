@@ -1,12 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import Session from "../models/session";
 
-interface AuthRequest extends Request {
-  user?: { userId: string };
-}
 
 export const isAdmin = async (
-  req: AuthRequest,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -15,7 +12,7 @@ export const isAdmin = async (
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const user = await Session.findById(req.user.userId);
+    const user:any = await Session.findById(req.user.userId);
 
     if (!user || user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" });

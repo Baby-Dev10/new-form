@@ -1,4 +1,4 @@
-//auth middleware
+//Auth middleware
 
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
@@ -8,12 +8,25 @@ interface DecodedUser {
   role?: string;
 }
 
-export const auth = (req: Request, res: Response, next: NextFunction) => {
+declare global {
+  namespace Express {
+    interface Request {
+      user?: DecodedUser;
+    }
+  }
+}
+
+export const auth = (
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void => { // explicitly return void
   try {
     const token = req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      return res.status(401).json({ message: "Authentication required" });
+      res.status(401).json({ message: "Authentication required" });
+      return; // exit without returning a Response
     }
 
     const decoded = jwt.verify(

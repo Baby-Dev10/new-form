@@ -3,51 +3,33 @@ import { validationResult } from "express-validator";
 import Session from "../models/session";
 import generatePDF from "../utils/generatePDF";
 
-interface AuthenticatedRequest extends Request {
-  user?: { userId: string };
-}
-
 export const createSession = async (
-  req: AuthenticatedRequest,
+  req: any,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return; // changed: do not return res.status(...)
     }
 
-    const { name, age, sessions, paymentMethod, premiumPlan, totalAmount } =
-      req.body;
+    const { name, age, sessions, paymentMethod, premiumPlan, totalAmount } = req.body;
+    const premiumExpiry = premiumPlan ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : undefined;
 
     const session = new Session({
-      user: req.user?.userId,
+      user: req.user?.id,
       name,
       age,
       sessions,
       paymentMethod,
       premiumPlan: premiumPlan || "none",
       totalAmount,
+      premiumExpiry, // added premiumExpiry for premium plans
     });
 
     await session.save();
-
-    if (premiumPlan) {
-      await User.findByIdAndUpdate(req.user?.userId, {
-        premiumPlan,
-        premiumExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      });
-    }
-
-    // const user = await User.findById(req.user?.userId);
-    // if (user) {
-    //   await sendEmail({
-    //     to: user.email,
-    //     subject: "Session Booking Confirmation",
-    //     text: `Thank you for booking ${sessions} session(s). Your booking is pending approval.`,
-    //   });
-    // }
 
     res.status(201).json(session);
   } catch (error) {
@@ -56,12 +38,12 @@ export const createSession = async (
 };
 
 export const getSessions = async (
-  req: AuthenticatedRequest,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const sessions = await Session.find({ user: req.user?.userId }).sort({
+    const sessions = await Session.find({ user: req.user?.id }).sort({
       createdAt: -1,
     });
     res.json(sessions);
@@ -71,18 +53,19 @@ export const getSessions = async (
 };
 
 export const getSessionById = async (
-  req: AuthenticatedRequest,
+  req: any,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const session = await Session.findOne({
       _id: req.params.id,
-      user: req.user?.userId,
+      user: req.user?.id,
     });
 
     if (!session) {
-      return res.status(404).json({ message: "Session not found" });
+      res.status(404).json({ message: "Session not found" });
+      return; // changed early return
     }
 
     res.json(session);
@@ -92,18 +75,19 @@ export const getSessionById = async (
 };
 
 export const updateSession = async (
-  req: AuthenticatedRequest,
+  req: any,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const session = await Session.findOne({
       _id: req.params.id,
-      user: req.user?.userId,
+      user: req.user?.id,
     });
 
     if (!session) {
-      return res.status(404).json({ message: "Session not found" });
+      res.status(404).json({ message: "Session not found" });
+      return; // changed early return
     }
 
     const allowedUpdates = ["sessions", "paymentMethod"];
@@ -124,21 +108,22 @@ export const updateSession = async (
 };
 
 export const downloadReceipt = async (
-  req: AuthenticatedRequest,
+  req: any,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const session = await Session.findOne({
       _id: req.params.id,
-      user: req.user?.userId,
+      user: req.user?.id,
     }).populate("user", "name email");
 
     if (!session) {
-      return res.status(404).json({ message: "Session not found" });
+      res.status(404).json({ message: "Session not found" });
+      return; // changed early return
     }
 
-    const pdfBuffer = await generatePDF(session);
+    const pdfBuffer = await generatePDF(session, res);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
