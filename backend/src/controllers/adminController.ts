@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import Session from "../models/Session";
-import User from "../models/User";
-import { sendEmail } from "../utils/emailService";
+import Session from "../models/session";
+
+// import { sendEmail } from "../utils/sendEmail";
 
 export const getAllSessions = async (
   req: Request,

@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import Session from "../models/Session";
-import User from "../models/User";
-import { generatePDF } from "../utils/pdfGenerator";
-import { sendEmail } from "../utils/emailService";
+import Session from "../models/session";
+import generatePDF from "../utils/generatePDF";
 
 interface AuthenticatedRequest extends Request {
   user?: { userId: string };
@@ -42,14 +40,14 @@ export const createSession = async (
       });
     }
 
-    const user = await User.findById(req.user?.userId);
-    if (user) {
-      await sendEmail({
-        to: user.email,
-        subject: "Session Booking Confirmation",
-        text: `Thank you for booking ${sessions} session(s). Your booking is pending approval.`,
-      });
-    }
+    // const user = await User.findById(req.user?.userId);
+    // if (user) {
+    //   await sendEmail({
+    //     to: user.email,
+    //     subject: "Session Booking Confirmation",
+    //     text: `Thank you for booking ${sessions} session(s). Your booking is pending approval.`,
+    //   });
+    // }
 
     res.status(201).json(session);
   } catch (error) {

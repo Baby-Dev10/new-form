@@ -1,8 +1,8 @@
 import PDFDocument from "pdfkit";
 import { Response } from "express";
-import { IBooking } from "../models/Booking";
+import { ISession } from "../models/session";
 
-const generatePDF = (booking: IBooking, res: Response): void => {
+const generatePDF = (booking: ISession, res: Response): void => {
   const doc = new PDFDocument({ margin: 50 });
 
   // Pipe the PDF into the response
