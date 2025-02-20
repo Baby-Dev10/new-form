@@ -1,6 +1,6 @@
 import express from "express";
 import { googleAuth, getProfile } from "../controllers/authController";
-import { auth } from "../middleware/auth";
+import { auth } from "../middlewares/auth";
 
 const router = express.Router();
 
