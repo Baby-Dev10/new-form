@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
 import { Response } from "express";
+// Changed import from Booking to Session
 import { ISession } from "../models/session";
 
 const generatePDF = (booking: ISession, res: Response): void => {

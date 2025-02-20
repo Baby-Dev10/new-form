@@ -6,10 +6,12 @@ import {
   updatePremiumPlans,
   getStats,
 } from "../controllers/adminController";
-import { auth } from "../middleware/auth";
-import { isAdmin } from "../middleware/isAdmin";
+import { auth } from "../middlewares/auth";
+
+import { isAdmin } from "../middlewares/isAdmin";
 
 const router = express.Router();
+
 
 // All routes require authentication and admin role
 router.use(auth, isAdmin);

@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { Request, Response, NextFunction } from "express";
-import Session from "../models/session"; // Added session model import
 
+import User from "../models/user";
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleAuth = async (
-  req: any,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -36,32 +36,32 @@ export const googleAuth = async (
         .json({ message: "Google account must have an email" });
     }
 
-    // Find or create session
-    let session:any = await Session.findOne({ email });
-    if (!session) {
-      session = new Session({
+    // Find or create user
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
         name,
         email,
         googleId,
-        role: "customer", // Default role for new sessions
+        role: "customer", // Default role for new users
       });
-      await session.save();
+      await user.save();
     }
 
     // Generate JWT token
     const jwtToken = jwt.sign(
-      { userId: session._id },
+      { userId: user._id },
       process.env.JWT_SECRET as string,
       { expiresIn: "24h" }
     );
 
     res.json({
       token: jwtToken,
-      user: { // The response key remains user for consistency
-        id: session._id,
-        name: session.name,
-        email: session.email,
-        role: session.role,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -75,17 +75,17 @@ export const getProfile = async (
   next: NextFunction
 ) => {
   try {
-    const session:any = await Session.findById(req.user?.userId);
-    if (!session) {
-      return res.status(404).json({ message: "Session not found" });
+    const user = await User.findById(req.user?.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
     res.json({
-      id: session._id,
-      name: session.name,
-      email: session.email,
-      role: session.role,
-      premiumPlan: session.premiumPlan,
-      premiumExpiry: session.premiumExpiry,
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      premiumPlan: user.premiumPlan,
+      premiumExpiry: user.premiumExpiry,
     });
   } catch (error) {
     next(error);
