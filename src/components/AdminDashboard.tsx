@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
 import {
   Check,
   X,
@@ -14,7 +15,7 @@ import {
   X as Close,
   Crown,
 } from "lucide-react";
-import axios from "axios";
+
 import { toast } from "react-toastify";
 
 interface Session {
@@ -76,9 +77,7 @@ function AdminDashboard() {
 
   const fetchSessions = async () => {
     try {
-      const response = await axios.get(
-        "https://form-session-back.vercel.app/api/sessions"
-      );
+      const response = await api.get("/admin/sessions");
       setSessions(response.data);
     } catch (error) {
       console.error("Error fetching sessions:", error);
@@ -91,10 +90,7 @@ function AdminDashboard() {
     status: "approved" | "cancelled"
   ) => {
     try {
-      await axios.patch(
-        `https://form-session-back.vercel.app/api/sessions/${id}`,
-        { status }
-      );
+      await api.patch(`/admin/sessions/${id}/status`, { status });
       toast.success(`Session ${status} successfully`);
       fetchSessions();
     } catch (error) {
@@ -105,10 +101,9 @@ function AdminDashboard() {
 
   const handleDownloadReceipt = async (id: string) => {
     try {
-      const response = await axios.get(
-        `https://form-session-back.vercel.app/api/receipt/${id}`,
-        { responseType: "blob" }
-      );
+      const response = await api.get(`/admin/sessions/${id}/receipt`, {
+        responseType: "blob",
+      });
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -125,9 +120,7 @@ function AdminDashboard() {
 
   const handlePriceUpdate = async () => {
     try {
-      await axios.patch("https://form-session-back.vercel.app/api/settings", {
-        pricePerSession,
-      });
+      await api.patch("/admin/pricing", { price: pricePerSession });
       toast.success("Price updated successfully");
       setIsEditingPrice(false);
     } catch (error) {
@@ -138,12 +131,7 @@ function AdminDashboard() {
 
   const handlePremiumPlanUpdate = async () => {
     try {
-      await axios.patch(
-        "https://form-session-back.vercel.app/api/premium-plans",
-        {
-          plans: premiumPlans,
-        }
-      );
+      await api.patch("/admin/premium-plans", premiumPlans);
       toast.success("Premium plans updated successfully");
       setIsEditingPremiumPlans(false);
     } catch (error) {

@@ -62,6 +62,7 @@ function Login({ setIsCustomerLoggedIn }: LoginProps) {
         // Demo credentials for admin
         if (email === "admin@example.com" && password === "admin123") {
           localStorage.setItem("isAdminLoggedIn", "true");
+
           toast.success("Admin login successful!");
           navigate("/admin");
         } else {

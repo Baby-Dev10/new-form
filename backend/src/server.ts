@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db";
 import sessionRoutes from "./routes/session";
-
+import morgan from "morgan";
 dotenv.config();
-
+import adminRoutes from "./routes/admin";
 const corsOptions = {
   origin: ["http://localhost:5173", ""], // or an array of allowed origins
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -19,26 +19,32 @@ const corsOptions = {
 connectDB();
 
 const app = express();
+app.use(morgan("dev"));
+// Middleware to set headers to fix CORS error
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
 
 app.use(
   cors({
-    origin: "https://form-session-iota.vercel.app", // Your React frontend URL
-    methods: "GET,POST", // Allowed methods
+    origin: "http://localhost:5173", // Your React frontend URL
+    methods: "GET,POST,PUT,DELETE", // Allowed methods
     allowedHeaders: "Content-Type,Authorization", // Allowed headers
     credentials: true, // If using cookies or authentication
   })
 );
-app.use(cors());
 
 // Optionally handle preflight requests explicitly
 app.options("*", cors());
 
 // Middleware
 app.use(express.json());
-app.use(cors());
 
 // Routes
 app.use("/api", sessionRoutes);
+app.use("/admin", adminRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;

@@ -9,7 +9,7 @@ export const googleAuth = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<any> => {
   try {
     const { token } = req.body;
 
@@ -73,7 +73,7 @@ export const getProfile = async (
   req: any,
   res: Response,
   next: NextFunction
-) => {
+): Promise<any> => {
   try {
     const user = await User.findById(req.user?.userId);
     if (!user) {

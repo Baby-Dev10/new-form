@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useState } from "react";
-import axios from "axios";
+
+import api from "@/lib/api";
 
 interface FormData {
   name: string;
@@ -79,10 +80,9 @@ function BookingForm({ sessionPrice }: BookingFormProps) {
 
   const receiptGen = async (id: string) => {
     try {
-      const response = await axios.get(
-        `https://form-session-back.vercel.app/api/receipt/${id}`,
-        { responseType: "blob" }
-      );
+      const response = await api.get(`/receipt/${id}`, {
+        responseType: "blob",
+      });
       const blob = new Blob([response.data], { type: "application/pdf" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -105,20 +105,15 @@ function BookingForm({ sessionPrice }: BookingFormProps) {
         totalAmount,
       };
 
-      const response = await axios.post(
-        "https://form-session-back.vercel.app/api/submit",
-        submitData
-      );
+      const response = await api.post("/book", submitData);
 
       if (selectedPlan) {
-        await axios.post(
-          "https://form-session-back.vercel.app/api/notify-admin",
-          {
-            type: "premium_plan",
-            plan: selectedPlan,
-            userName: data.name,
-          }
-        );
+        await api.patch("/user/premium", {
+          premiumPlan: selectedPlan,
+          premiumExpiry: new Date(
+            new Date().getTime() + 30 * 24 * 60 * 60 * 1000
+          ),
+        });
       }
 
       toast.success("Booking successful!");
